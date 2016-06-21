@@ -1,0 +1,48 @@
+module(load="imjournal" PersistStateInterval="100" StateFile="/var/spool/rsyslog/imjournal.state")
+module(load="omrelp")
+
+#TODO: work around permission issue when journal has different UID
+#$PrivDropToUser syslog
+#$PrivDropToGroup syslog
+
+$localHostname {{ getv "/self/host/name" }}
+
+$MaxMessageSize 32k
+$WorkDirectory /var/spool/rsyslog
+
+template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %syslogtag% @cee: %$!all-json%")
+
+ruleset(
+  name="forward"
+  queue.type="LinkedList"
+) {
+  #action(type="omfile"
+  #       file="/var/log/ceelog"
+  #       #template="CEETemplate"
+  #       template="RSYSLOG_DebugFormat"
+  #       dirCreateMode="0755"
+  #       FileCreateMode="0644"
+  #)
+  action(type="omrelp"
+         name="fwd_to_logserver"
+         target="10.42.24.10"
+         port="2515"
+         template="CEETemplate"
+         queue.type="LinkedList"
+         queue.filename="fwd_queue"
+         action.resumeretrycount="-1"
+         queue.dequeuebatchsize="100"
+         queue.saveonshutdown="on"
+         queue.discardseverity="8"
+         queue.timeoutenqueue="0"
+         queue.maxdiskspace="1g"
+         queue.highwatermark="8000"
+         queue.lowwatermark="2000"
+         queue.size="10000"
+         queue.discardmark="9750"
+         tls="on"
+  )
+}
+
+call forward
+

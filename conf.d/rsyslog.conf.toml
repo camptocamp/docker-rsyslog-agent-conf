@@ -1,0 +1,7 @@
+[template]
+src = "rsyslog.conf.tmpl"
+dest = "/etc/rsyslog-confd/rsyslog.conf"
+keys = [
+  "/self",
+]
+
