@@ -17,13 +17,15 @@ ruleset(
   name="forward"
   queue.type="LinkedList"
 ) {
-  #action(type="omfile"
-  #       file="/var/log/ceelog"
-  #       #template="CEETemplate"
-  #       template="RSYSLOG_DebugFormat"
-  #       dirCreateMode="0755"
-  #       FileCreateMode="0644"
-  #)
+{{- if ne "" (getenv "DEBUG") }}
+  action(type="omfile"
+         file="/tmp/debug.log"
+         template="RSYSLOG_DebugFormat"
+         dirCreateMode="0755"
+         FileCreateMode="0644"
+  )
+{{- end }}
+
   action(type="omrelp"
          name="fwd_to_logserver"
          target="10.42.24.10"
