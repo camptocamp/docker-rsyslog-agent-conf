@@ -17,7 +17,7 @@ template(name="timestampRFC3339" type="string" string="%timestamp:::date-rfc3339
 
 input(type="imfile" File="/hostfs/var/log/rancher/agent.log" Tag="rancher-agent:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
-input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on" readMode="1")
+input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 
 ruleset(
   name="jsonize"
