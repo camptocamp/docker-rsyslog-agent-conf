@@ -12,7 +12,7 @@ $SystemLogRateLimitInterval 0
 $MaxMessageSize 32k
 $WorkDirectory /var/spool/rsyslog
 
-template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %syslogtag% @cee: %$!all-json%")
+template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %syslogtag% @cee: %$!all-json-plain%")
 template(name="timestampRFC3339" type="string" string="%timestamp:::date-rfc3339%")
 
 input(type="imfile" File="/hostfs/var/log/rancher/agent.log" Tag="rancher-agent:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
