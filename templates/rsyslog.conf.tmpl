@@ -13,10 +13,29 @@ $MaxMessageSize 32k
 $WorkDirectory /var/spool/rsyslog
 
 template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %syslogtag% @cee: %$!all-json%")
+template(name="timestampRFC3339" type="string" string="%timestamp:::date-rfc3339%")
 
-input(type="imfile" File="/hostfs/var/log/rancher/agent.log" Tag="rancher-agent:" PersistStateInterval="100" Ruleset="forward" freshStartTail="on")
-input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="forward" freshStartTail="on")
-input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="forward" freshStartTail="on" readMode="1")
+input(type="imfile" File="/hostfs/var/log/rancher/agent.log" Tag="rancher-agent:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
+input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
+input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on" readMode="1")
+
+ruleset(
+  name="jsonize"
+  queue.type="LinkedList"
+) {
+  set $!MESSAGE = $msg;
+  set $!hostname = $hostname;
+  set $!inputname = $inputname;
+  set $!pri = $pri;
+  set $!programname = $programname;
+  set $!rawmsg = $rawmsg;
+  set $!syslogfacility = $syslogfacility;
+  set $!syslogseverity = $syslogseverity;
+  set $!syslogtag = $syslogtag;
+  set $!timegenerated = exec_template("timestampRFC3339");
+
+  call forward
+}
 
 ruleset(
   name="forward"
