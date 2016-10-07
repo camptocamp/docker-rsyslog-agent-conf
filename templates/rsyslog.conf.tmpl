@@ -53,7 +53,7 @@ ruleset(
   action(type="omrelp"
          name="fwd_to_logserver"
          target="10.42.24.10"
-         port="2515"
+         port="2514"
          template="CEETemplate"
          queue.type="LinkedList"
          queue.filename="fwd_queue"
@@ -67,7 +67,7 @@ ruleset(
          queue.lowwatermark="2000"
          queue.size="10000"
          queue.discardmark="9750"
-         tls="on"
+         tls="off"
   )
 }
 
