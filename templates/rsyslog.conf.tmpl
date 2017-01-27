@@ -12,8 +12,17 @@ $SystemLogRateLimitInterval 0
 $MaxMessageSize 32k
 $WorkDirectory /var/spool/rsyslog
 
+# Log lines templates
 template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %syslogtag% @cee: %$!all-json-plain%")
+
+# timestamp templates
 template(name="timestampRFC3339" type="string" string="%timestamp:::date-rfc3339%")
+
+# StatsD protocol templates
+template(name="StatsDkernelOOM" type="string" string="syslog.kernel.%HOSTNAME%.oom:1|c\n")
+template(name="StatsDkernelKill" type="string" string="syslog.kernel.%HOSTNAME%.kill:1|c\n")
+template(name="StatsDkernelOops" type="string" string="syslog.kernel.%HOSTNAME%.oops:1|c\n")
+template(name="StatsDkernelSegfault" type="string" string="syslog.kernel.%HOSTNAME%.segfault:1|c\n")
 
 input(type="imfile" File="/hostfs/var/log/rancher/agent.log" Tag="rancher-agent:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
@@ -69,6 +78,42 @@ ruleset(
          queue.discardmark="9750"
          tls="off"
   )
+
+  if ($!SYSLOG_IDENTIFIER == "kernel") then {
+    if ($!MESSAGE contains "Out of memory") then {
+      action(type="omfwd"
+             name="fwd_imudp_stats"
+             target="10.42.24.101"
+             protocol="udp"
+             port="8125"
+             template="StatsDkernelOOM"
+      )
+    } else if ($!MESSAGE contains "Killed process") then {
+      action(type="omfwd"
+             name="fwd_imudp_stats"
+             target="10.42.24.101"
+             protocol="udp"
+             port="8125"
+             template="StatsDkernelKill"
+      )
+    } else if ($!MESSAGE contains "Call Trace") then {
+      action(type="omfwd"
+             name="fwd_imudp_stats"
+             target="10.42.24.101"
+             protocol="udp"
+             port="8125"
+             template="StatsDkernelOops"
+      )
+    } else if ($!MESSAGE contains "segfault") then {
+      action(type="omfwd"
+             name="fwd_imudp_stats"
+             target="10.42.24.101"
+             protocol="udp"
+             port="8125"
+             template="StatsDkernelSegfault"
+      )
+    }
+  }
 }
 
 call forward
