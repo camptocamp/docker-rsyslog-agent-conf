@@ -25,7 +25,6 @@ template(name="StatsDkernelOops" type="string" string="syslog.kernel.%HOSTNAME%.
 template(name="StatsDkernelSegfault" type="string" string="syslog.kernel.%HOSTNAME%.segfault:1|c\n")
 template(name="StatsDjournaldRateLimit" type="string" string="syslog.journald.%HOSTNAME%.rate-limit:1|c\n")
 
-input(type="imfile" File="/hostfs/var/log/rancher/agent.log" Tag="rancher-agent:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 
