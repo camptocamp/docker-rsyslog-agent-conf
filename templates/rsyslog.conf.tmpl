@@ -1,6 +1,7 @@
 module(load="imjournal" PersistStateInterval="100" StateFile="/var/spool/rsyslog/imjournal.state")
 module(load="imfile" mode="inotify")
 module(load="omrelp")
+module(load="imuxsock" SysSock.RateLimit.Interval="0" SysSock.IgnoreTimestamp="off")
 
 #TODO: work around permission issue when journal has different UID
 #$PrivDropToUser syslog
@@ -27,6 +28,7 @@ template(name="StatsDjournaldRateLimit" type="string" string="syslog.journald.%H
 
 input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
+input(type="imuxsock" Socket="/logging_agent/dev/log" Ruleset="jsonize" CreatePath="on")
 
 ruleset(
   name="jsonize"
