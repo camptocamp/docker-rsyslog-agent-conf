@@ -86,6 +86,7 @@ ruleset(
          queue.size="10000"
          queue.discardmark="9750"
          tls="off"
+         rebindinterval="10000"
   )
 
   if ($!SYSLOG_IDENTIFIER == "kernel") then {
