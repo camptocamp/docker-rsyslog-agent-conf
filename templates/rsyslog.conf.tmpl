@@ -14,7 +14,7 @@ $MaxMessageSize 32k
 $WorkDirectory /var/spool/rsyslog
 
 # Log lines templates
-template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %syslogtag% @cee: %$!all-json-plain%")
+template(name="CEETemplate" type="string" string="<%PRI%>%TIMESTAMP:::date-rfc3339% %HOSTNAME% %!syslogtag% @cee: %$!all-json-plain%")
 
 # timestamp templates
 template(name="timestampRFC3339" type="string" string="%timestamp:::date-rfc3339%")
@@ -52,6 +52,14 @@ ruleset(
   name="forward"
   queue.type="LinkedList"
 ) {
+
+  if ($!CONTAINER_TAG != "") then {
+    unset $!SYSLOG_IDENTIFIER;
+    set $!syslogtag = "containers:";
+  } else {
+    set $!syslogtag = $syslogtag;
+  }
+
 {{- if ne "" (getenv "DEBUG") }}
   action(type="omfile"
          file="/tmp/debug.log"
@@ -131,4 +139,3 @@ ruleset(
 }
 
 call forward
-
