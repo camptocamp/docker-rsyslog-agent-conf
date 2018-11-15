@@ -1,4 +1,4 @@
-module(load="imjournal" PersistStateInterval="100" StateFile="/var/spool/rsyslog/imjournal.state")
+module(load="imjournal" PersistStateInterval="100" Ratelimit.Interval="60" Ratelimit.Burst="20000" StateFile="/var/spool/rsyslog/imjournal.state")
 module(load="imfile" mode="inotify")
 module(load="omrelp")
 module(load="imuxsock" SysSock.RateLimit.Interval="0" SysSock.IgnoreTimestamp="off")
@@ -9,7 +9,6 @@ module(load="imuxsock" SysSock.RateLimit.Interval="0" SysSock.IgnoreTimestamp="o
 
 $localHostname {{ getv "/self/host/name" }}
 
-$SystemLogRateLimitInterval 0
 $MaxMessageSize 32k
 $WorkDirectory /var/spool/rsyslog
 
