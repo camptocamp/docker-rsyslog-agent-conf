@@ -1,8 +1,9 @@
 module(load="impstats" log.syslog="on" ruleset="from_pstats" format="json" resetCounters="on" interval="10")
 module(load="imjournal" PersistStateInterval="100" Ratelimit.Interval="60" Ratelimit.Burst="20000" StateFile="/var/spool/rsyslog/imjournal.state")
 module(load="imfile" mode="inotify")
-module(load="omrelp")
 module(load="imuxsock" SysSock.RateLimit.Interval="0" SysSock.IgnoreTimestamp="off")
+module(load="omrelp")
+module(load="omstdout")
 module(load="mmjsonparse")
 
 #TODO: work around permission issue when journal has different UID
@@ -104,6 +105,13 @@ ruleset(
   set $!timegenerated = exec_template("timestampRFC3339");
 
   call forward
+}
+
+ruleset(
+  name="from_internal"
+  queue.type="LinkedList"
+) {
+  action(type="omstdout" name="internal_stdout")
 }
 
 ruleset(
@@ -230,6 +238,10 @@ ruleset(
          template="RSYSLOG_DebugFormat"
   )
 {{- end }}
+}
+
+if ($inputname == "rsyslogd") then {
+  call from_internal
 }
 
 call forward
