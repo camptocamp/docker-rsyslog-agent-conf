@@ -1,7 +1,9 @@
+module(load="impstats" log.syslog="on" ruleset="from_pstats" format="json" resetCounters="on" interval="10")
 module(load="imjournal" PersistStateInterval="100" Ratelimit.Interval="60" Ratelimit.Burst="20000" StateFile="/var/spool/rsyslog/imjournal.state")
 module(load="imfile" mode="inotify")
 module(load="omrelp")
 module(load="imuxsock" SysSock.RateLimit.Interval="0" SysSock.IgnoreTimestamp="off")
+module(load="mmjsonparse")
 
 #TODO: work around permission issue when journal has different UID
 #$PrivDropToUser syslog
@@ -24,6 +26,63 @@ template(name="StatsDkernelKill" type="string" string="syslog.kernel.%HOSTNAME%.
 template(name="StatsDkernelOops" type="string" string="syslog.kernel.%HOSTNAME%.oops:1|c\n")
 template(name="StatsDkernelSegfault" type="string" string="syslog.kernel.%HOSTNAME%.segfault:1|c\n")
 template(name="StatsDjournaldRateLimit" type="string" string="syslog.journald.%HOSTNAME%.rate-limit:1|c\n")
+template(name="StatsDQueue" type="list") {
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.queue.")
+         property(name="$!name")
+         constant(value=".size:")
+             property(name="$!size")
+             constant(value="|g\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.queue.")
+         property(name="$!name")
+         constant(value=".enqueued:")
+             property(name="$!enqueued")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.queue.")
+         property(name="$!name")
+         constant(value=".discarded_full:")
+             property(name="$!discarded.full")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.queue.")
+         property(name="$!name")
+         constant(value=".discarded_nf:")
+             property(name="$!discarded.nf")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.queue.")
+         property(name="$!name")
+         constant(value=".maxqsize:")
+             property(name="$!maxqsize")
+             constant(value="|g\n")
+        }
+
+template(name="StatsDImJournal" type="list") {
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.submitted:")
+             property(name="$!submitted")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.read:")
+             property(name="$!read")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.discarded:")
+             property(name="$!discarded")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.failed:")
+             property(name="$!failed")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.poll_failed:")
+             property(name="$!poll_failed")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.rotations:")
+             property(name="$!rotations")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.recovery_attempts:")
+             property(name="$!recovery_attempts")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.ratelimit_discarded_in_interval:")
+             property(name="$!ratelimit_discarded_in_interval")
+             constant(value="|c\n")
+         constant(value="log_agent_{{ getv "/self/container/service_index" }}.imjournal.disk_usage_bytes:")
+             property(name="$!disk_usage_bytes")
+             constant(value="|g\n")
+        }
 
 input(type="imfile" File="/hostfs/var/log/dpkg.log" Tag="dpkg:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
 input(type="imfile" File="/hostfs/var/log/apt/history.log" Tag="apt:" PersistStateInterval="100" Ruleset="jsonize" freshStartTail="on")
@@ -136,6 +195,41 @@ ruleset(
       )
     }
   }
+}
+
+ruleset(
+  name="from_pstats"
+  queue.type="LinkedList"
+) {
+  action(type="mmjsonparse" cookie="" name="parse_json_from_pstats")
+
+  if ($!origin == "core.queue") then {
+    action(type="omfwd"
+           name="fwd_queue_stats"
+           target="10.42.24.101"
+           protocol="udp"
+           port="8125"
+           template="StatsDQueue"
+    )
+  } else if ($!origin == "imjournal" and $!submitted != "") then {
+    action(type="omfwd"
+           name="fwd_imjournal_stats"
+           target="10.42.24.101"
+           protocol="udp"
+           port="8125"
+           template="StatsDImJournal"
+    )
+  }
+
+{{- if ne "" (getenv "DEBUG") }}
+  action(type="omfile"
+         name="pstats_dyn_file"
+         file="/tmp/pstats.log"
+         dirCreateMode="0755"
+         FileCreateMode="0644"
+         template="RSYSLOG_DebugFormat"
+  )
+{{- end }}
 }
 
 call forward
