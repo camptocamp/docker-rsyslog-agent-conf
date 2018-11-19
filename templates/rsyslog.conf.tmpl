@@ -26,7 +26,6 @@ template(name="StatsDkernelOOM" type="string" string="syslog.kernel.%HOSTNAME%.o
 template(name="StatsDkernelKill" type="string" string="syslog.kernel.%HOSTNAME%.kill:1|c\n")
 template(name="StatsDkernelOops" type="string" string="syslog.kernel.%HOSTNAME%.oops:1|c\n")
 template(name="StatsDkernelSegfault" type="string" string="syslog.kernel.%HOSTNAME%.segfault:1|c\n")
-template(name="StatsDjournaldRateLimit" type="string" string="syslog.journald.%HOSTNAME%.rate-limit:1|c\n")
 template(name="StatsDQueue" type="list") {
          constant(value="log_agent_{{ getv "/self/container/service_index" }}.queue.")
          property(name="$!name")
@@ -188,18 +187,6 @@ ruleset(
              protocol="udp"
              port="8125"
              template="StatsDkernelSegfault"
-      )
-    }
-  }
-
-  if ($!SYSLOG_IDENTIFIER == "systemd-journald") then {
-    if ($!MESSAGE contains "Suppressed") then {
-      action(type="omfwd"
-             name="fwd_imudp_stats"
-             target="10.42.24.101"
-             protocol="udp"
-             port="8125"
-             template="StatsDjournaldRateLimit"
       )
     }
   }
