@@ -1,4 +1,4 @@
-FROM camptocamp/rsyslog-bin:v0.1.10
+FROM camptocamp/rsyslog-bin:v0.1.11
 
 ADD ./conf.d /etc/confd/conf.d
 ADD ./templates /etc/confd/templates
