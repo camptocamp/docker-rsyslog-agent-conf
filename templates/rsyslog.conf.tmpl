@@ -138,7 +138,7 @@ ruleset(
 
   action(type="omrelp"
          name="fwd_to_logserver"
-         target="10.42.24.10"
+         target="syslog.logging.rancher.internal"
          port="2514"
          template="CEETemplate"
          queue.type="LinkedList"
@@ -161,7 +161,7 @@ ruleset(
     if ($!MESSAGE contains "Out of memory") then {
       action(type="omfwd"
              name="fwd_imudp_stats"
-             target="10.42.24.101"
+             target="statsd.metrics.rancher.internal"
              protocol="udp"
              port="8125"
              template="StatsDkernelOOM"
@@ -169,7 +169,7 @@ ruleset(
     } else if ($!MESSAGE contains "Killed process") then {
       action(type="omfwd"
              name="fwd_imudp_stats"
-             target="10.42.24.101"
+             target="statsd.metrics.rancher.internal"
              protocol="udp"
              port="8125"
              template="StatsDkernelKill"
@@ -177,7 +177,7 @@ ruleset(
     } else if ($!MESSAGE contains "Call Trace") then {
       action(type="omfwd"
              name="fwd_imudp_stats"
-             target="10.42.24.101"
+             target="statsd.metrics.rancher.internal"
              protocol="udp"
              port="8125"
              template="StatsDkernelOops"
@@ -185,7 +185,7 @@ ruleset(
     } else if ($!MESSAGE contains "segfault") then {
       action(type="omfwd"
              name="fwd_imudp_stats"
-             target="10.42.24.101"
+             target="statsd.metrics.rancher.internal"
              protocol="udp"
              port="8125"
              template="StatsDkernelSegfault"
@@ -203,7 +203,7 @@ ruleset(
   if ($!origin == "core.queue") then {
     action(type="omfwd"
            name="fwd_queue_stats"
-           target="10.42.24.101"
+           target="statsd.metrics.rancher.internal"
            protocol="udp"
            port="8125"
            template="StatsDQueue"
@@ -211,7 +211,7 @@ ruleset(
   } else if ($!origin == "imjournal" and $!submitted != "") then {
     action(type="omfwd"
            name="fwd_imjournal_stats"
-           target="10.42.24.101"
+           target="statsd.metrics.rancher.internal"
            protocol="udp"
            port="8125"
            template="StatsDImJournal"
